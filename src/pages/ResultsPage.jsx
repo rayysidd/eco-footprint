@@ -225,6 +225,16 @@ const ResultsPage = () => {
               <Button onClick={handleRestart} variant="secondary" icon={FaRedo}>
                   Take Again
               </Button>
+              <Button 
+  onClick={() => {
+    navigate('/action-plan', { state: results });  // 👈 Pass results
+  }} 
+  variant="primary" 
+  className="from-green-500 to-emerald-600 focus:ring-green-300"
+>
+  View Action Plan
+</Button>
+
               <Button onClick={() => window.print()} variant="primary" icon={FaSave}>
                   Save Results
               </Button>
