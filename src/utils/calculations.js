@@ -2,57 +2,47 @@
  * @fileoverview This file contains the core logic for calculating the eco-footprint score.
  */
 
-// Define the scoring values for each category and choice.
-// These values are simple estimations for this mini-calculator.
-const SCORE_VALUES = {
-    transport: {
-        car: 15,
-        transit: 5,
-        walk_bike: 0,
-    },
-    diet: {
-        meat: 12,
-        balanced: 6,
-        veggie: 2,
-    },
-    shopping: {
-        new: 10,
-        mix: 5,
-        eco: 2,
-    },
-    // Energy is a range from 2 to 10, so it's handled directly.
-};
+import { generateSuggestions } from './suggestions.js';
 
 /**
  * Calculates the total eco-footprint score based on user selections.
- * @param {object} userSelections - An object containing the user's choices.
- * @param {string} userSelections.transport - The selected transport method (e.g., 'car').
- * @param {string} userSelections.diet - The selected diet type (e.g., 'meat').
- * @param {number} userSelections.energy - The selected energy consciousness level (2-10).
- * @param {string} userSelections.shopping - The selected shopping habit (e.g., 'new').
- * @returns {{totalScore: number, scores: object}} - An object containing the total score
- * and a breakdown of scores for each category.
+ * @param {object} userSelections - An object containing the user's choices from the form.
+ * @returns {{totalScore: number, scores: object, resultCategory: object, suggestions: array}} - Complete results object.
  */
 export function calculateFootprint(userSelections) {
-    // Retrieve the score for each category based on the user's selection.
-    const transportScore = SCORE_VALUES.transport[userSelections.transport] || 0;
-    const dietScore = SCORE_VALUES.diet[userSelections.diet] || 0;
-    const shoppingScore = SCORE_VALUES.shopping[userSelections.shopping] || 0;
+    console.log('Calculating footprint for:', userSelections);
     
-    // The energy score is taken directly from the range input.
-    const energyScore = parseInt(userSelections.energy, 10) || 0;
-
-    // Sum the scores to get the final total.
-    const totalScore = transportScore + dietScore + energyScore + shoppingScore;
-
+    // Sum all the scores from the form (each question returns 1, 3, or 5 points)
+    const totalScore = Object.values(userSelections).reduce((sum, value) => sum + (parseInt(value) || 0), 0);
+    
+    // Create a breakdown of scores by category for display
     const scores = {
-        transportScore,
-        dietScore,
-        energyScore,
-        shoppingScore,
+        transportScore: parseInt(userSelections.transport) || 0,
+        dietScore: parseInt(userSelections.diet) || 0,
+        energyScore: parseInt(userSelections.energy) || 0,
+        shoppingScore: parseInt(userSelections.shopping) || 0,
+        habitsScore: parseInt(userSelections.habits) || 0,
+        waterScore: parseInt(userSelections.water) || 0,
+        wasteScore: parseInt(userSelections.waste) || 0,
+        digitalScore: parseInt(userSelections.digital) || 0,
+        travelScore: parseInt(userSelections.travel) || 0,
+        appliancesScore: parseInt(userSelections.appliances) || 0
     };
 
-    return { totalScore, scores };
+    // Get the result category and message
+    const resultCategory = getResultCategory(totalScore);
+    
+    // Generate personalized suggestions based on answers
+    const suggestions = generateSuggestions(userSelections, totalScore);
+
+    console.log('Calculation results:', { totalScore, scores, resultCategory, suggestions });
+
+    return { 
+        totalScore, 
+        scores, 
+        resultCategory,
+        suggestions
+    };
 }
 
 /**
@@ -62,24 +52,24 @@ export function calculateFootprint(userSelections) {
  * tailwind css color class, and a feedback message.
  */
 export function getResultCategory(totalScore) {
-    // The maximum possible score is 15 + 12 + 10 + 10 = 47.
-    if (totalScore <= 18) {
+    // With 10 questions, each worth 1-5 points, max score is 50
+    if (totalScore <= 15) {
         return {
             level: 'low',
             color: 'bg-green-500',
-            message: "Excellent! Your daily footprint is low.",
+            message: "Excellent! Your carbon footprint is very low. Keep up the great work!",
         };
     }
-    if (totalScore <= 32) {
+    if (totalScore <= 30) {
         return {
             level: 'medium',
             color: 'bg-yellow-500',
-            message: "Good effort! There's some room for improvement.",
+            message: "Good effort! Your footprint is moderate with room for improvement.",
         };
     }
     return {
         level: 'high',
         color: 'bg-red-500',
-        message: "Your daily footprint is high. Let's find ways to reduce it!",
+        message: "Your carbon footprint is high. Let's work on reducing it together!",
     };
 }
